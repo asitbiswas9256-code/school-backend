@@ -16,5 +16,9 @@ app.get('/', (req, res) => res.send('API running smoothly'));
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+// NEW ADMIN ROUTES ADDED HERE
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
