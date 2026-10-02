@@ -3,10 +3,15 @@ const jwt = require('jsonwebtoken');
 // 1. The Front Door Guard: Checks if the user is logged in at all
 const protect = (req, res, next) => {
     // Look for the ID badge in the request header
-    const token = req.header('Authorization');
+    let token = req.header('Authorization');
     
     if (!token) {
         return res.status(401).json({ message: 'Access Denied: No ID badge found.' });
+    }
+
+    // THE FIX: Slice off the "Bearer " prefix so JWT can read the pure token
+    if (token.startsWith('Bearer ')) {
+        token = token.split(' ')[1];
     }
 
     try {
