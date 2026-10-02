@@ -12,7 +12,6 @@ router.post('/submit', verifyToken, async (req, res) => {
             return res.status(400).json({ message: "Start date, end date, and reason are required." });
         }
         
-        // Securely fetch their readable ID (e.g., 'stu01')
         const user = await User.findById(req.user.id);
         const readableId = user ? user.userId : req.user.id;
 
@@ -23,14 +22,15 @@ router.post('/submit', verifyToken, async (req, res) => {
             endDate,
             reason,
             status: 'Pending',
-            adminFeedback: '' // This stays empty until the Headmaster replies
+            adminFeedback: '' 
         });
 
         await newLeave.save();
         res.status(201).json({ message: "Leave application securely submitted to the Headmaster." });
     } catch (error) {
         console.error("Leave Submission Error:", error);
-        res.status(500).json({ message: "Error submitting leave application." });
+        // THE FIX: This will now send the exact database rejection reason to your screen!
+        res.status(500).json({ message: `Database Error: ${error.message}` });
     }
 });
 
@@ -40,8 +40,7 @@ router.get('/all', verifyToken, adminOnly, async (req, res) => {
         const leaves = await Leave.find().sort({ createdAt: -1 });
         res.status(200).json(leaves);
     } catch (error) {
-        console.error("Fetch Leaves Error:", error);
-        res.status(500).json({ message: "Error fetching leave applications." });
+        res.status(500).json({ message: `Database Error: ${error.message}` });
     }
 });
 
@@ -50,7 +49,6 @@ router.put('/:id/status', verifyToken, adminOnly, async (req, res) => {
     try {
         const { status, adminFeedback } = req.body;
 
-        // Ensure the status is valid
         if (!['Approved', 'Rejected'].includes(status)) {
             return res.status(400).json({ message: "Invalid status update." });
         }
@@ -59,7 +57,7 @@ router.put('/:id/status', verifyToken, adminOnly, async (req, res) => {
             req.params.id, 
             { 
                 status, 
-                adminFeedback: adminFeedback || '' // Saves the Headmaster's exact reason
+                adminFeedback: adminFeedback || '' 
             }, 
             { new: true }
         );
@@ -70,12 +68,11 @@ router.put('/:id/status', verifyToken, adminOnly, async (req, res) => {
         
         res.status(200).json({ message: `Leave successfully marked as ${status}.`, leave: updatedLeave });
     } catch (error) {
-        console.error("Leave Status Update Error:", error);
-        res.status(500).json({ message: "Error updating leave status." });
+        res.status(500).json({ message: `Database Error: ${error.message}` });
     }
 });
 
-// 4. GET: Student/Teacher Notification Portal (Views their own past applications)
+// 4. GET: Student/Teacher Notification Portal
 router.get('/my-leaves', verifyToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -84,8 +81,7 @@ router.get('/my-leaves', verifyToken, async (req, res) => {
         const myLeaves = await Leave.find({ applicantId: readableId }).sort({ createdAt: -1 });
         res.status(200).json(myLeaves);
     } catch (error) {
-        console.error("Fetch My Leaves Error:", error);
-        res.status(500).json({ message: "Error fetching your leave history." });
+        res.status(500).json({ message: `Database Error: ${error.message}` });
     }
 });
 
