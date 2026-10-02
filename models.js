@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
-// 1. User Schema 
+// 1. User Schema (Now with Email for OTPs)
 const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    email: { type: String, default: '' }, // NEW: Needed for sending OTPs!
     role: { type: String, enum: ['Headmaster', 'Assistant Headmaster', 'Teacher', 'Student'], required: true },
     fullName: { type: String, required: true },
     isActive: { type: Boolean, default: true }
@@ -60,14 +61,14 @@ const NoticeSchema = new mongoose.Schema({
     authorRole: { type: String, required: true }
 }, { timestamps: true });
 
-// 7. NEW: Teacher Profile (For the Directory)
+// 7. Teacher Profile (For the Directory)
 const TeacherProfileSchema = new mongoose.Schema({
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     designation: { type: String, required: true },
-    subjects: [{ type: String }] // e.g., ["Mathematics", "Physics"]
+    subjects: [{ type: String }] 
 }, { timestamps: true });
 
-// 8. NEW: Digital Classroom (Lesson Posts)
+// 8. Digital Classroom (Lesson Posts)
 const LessonSchema = new mongoose.Schema({
     teacherId: { type: String, required: true },
     teacherName: { type: String, required: true },
@@ -84,6 +85,13 @@ const LessonSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
+// 9. NEW: OTP Storage for Password Resets
+const OtpSchema = new mongoose.Schema({
+    userId: { type: String, required: true },
+    otpCode: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now, expires: 300 } // This tells the database to auto-delete the OTP after exactly 5 minutes!
+});
+
 module.exports = {
     User: mongoose.model('User', UserSchema),
     PreApproved: mongoose.model('PreApproved', PreApprovedIdSchema),
@@ -91,6 +99,7 @@ module.exports = {
     Report: mongoose.model('Report', ReportSchema),
     Leave: mongoose.model('Leave', LeaveSchema),
     Notice: mongoose.model('Notice', NoticeSchema),
-    TeacherProfile: mongoose.model('TeacherProfile', TeacherProfileSchema), // Exported
-    Lesson: mongoose.model('Lesson', LessonSchema) // Exported
+    TeacherProfile: mongoose.model('TeacherProfile', TeacherProfileSchema),
+    Lesson: mongoose.model('Lesson', LessonSchema),
+    OTP: mongoose.model('OTP', OtpSchema) // Exported!
 };
