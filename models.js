@@ -40,7 +40,7 @@ const ReportSchema = new mongoose.Schema({
     status: { type: String, enum: ['Pending', 'Reviewed', 'Resolved'], default: 'Pending' }
 }, { timestamps: true });
 
-// 5. NEW: Leave Application System (This is what was missing!)
+// 5. Leave Application System
 const LeaveSchema = new mongoose.Schema({
     applicantId: { type: String, required: true },
     applicantRole: { type: String, required: true }, 
@@ -51,11 +51,20 @@ const LeaveSchema = new mongoose.Schema({
     adminFeedback: { type: String, default: '' } 
 }, { timestamps: true });
 
-// Export everything perfectly so the routes can use them
+// 6. NEW: Global Notice Board & Logistics Feed
+const NoticeSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    type: { type: String, enum: ['Notice', 'Logistics'], required: true }, // 'Notice' = Headmaster, 'Logistics' = Assistant
+    authorId: { type: String, required: true },
+    authorRole: { type: String, required: true }
+}, { timestamps: true });
+
 module.exports = {
     User: mongoose.model('User', UserSchema),
     PreApproved: mongoose.model('PreApproved', PreApprovedIdSchema),
     StudentProfile: mongoose.model('StudentProfile', StudentProfileSchema),
     Report: mongoose.model('Report', ReportSchema),
-    Leave: mongoose.model('Leave', LeaveSchema)
+    Leave: mongoose.model('Leave', LeaveSchema),
+    Notice: mongoose.model('Notice', NoticeSchema) // Exported here!
 };
