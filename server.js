@@ -28,9 +28,12 @@ app.use('/api/student', studentRoutes);
 const reportRoutes = require('./routes/reports');
 app.use('/api/reports', reportRoutes);
 
-// NEW LEAVE ROUTE ADDED HERE
 const leaveRoutes = require('./routes/leaves');
 app.use('/api/leaves', leaveRoutes);
+
+// NEW: Global Notice Board & Logistics Route
+const noticeRoutes = require('./routes/notices');
+app.use('/api/notices', noticeRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
