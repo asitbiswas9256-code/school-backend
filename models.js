@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['Headmaster', 'Assistant_Headmaster', 'Teacher', 'Student'], required: true },
+    // THE FIX: Removed the underscore to match the frontend perfectly
+    role: { type: String, enum: ['Headmaster', 'Assistant Headmaster', 'Teacher', 'Student'], required: true },
     fullName: { type: String, required: true },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
@@ -12,7 +13,8 @@ const UserSchema = new mongoose.Schema({
 // 2. Pre-Approved IDs (Gatekeeper for Registration)
 const PreApprovedIdSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
-    role: { type: String, enum: ['Student', 'Teacher'], required: true },
+    // THE FIX: Added 'Assistant Headmaster' to the allowed list so MongoDB stops rejecting it
+    role: { type: String, enum: ['Assistant Headmaster', 'Student', 'Teacher'], required: true },
     isRegistered: { type: Boolean, default: false }
 });
 
