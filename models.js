@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// 1. User Schema (Handles all 4 roles + Login)
+// 1. User Schema 
 const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -9,14 +9,14 @@ const UserSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// 2. Pre-Approved IDs (Gatekeeper for Registration)
+// 2. Pre-Approved IDs 
 const PreApprovedIdSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     role: { type: String, enum: ['Assistant Headmaster', 'Student', 'Teacher'], required: true },
     isRegistered: { type: Boolean, default: false }
 });
 
-// 3. Student Profile Schema (Unified Portal Data)
+// 3. Student Profile Schema 
 const StudentProfileSchema = new mongoose.Schema({
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     currentClass: { type: String, required: true },
@@ -30,7 +30,7 @@ const StudentProfileSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// 4. Confidential Whistleblower Portal (FIXED: Perfectly matches the reports route)
+// 4. Confidential Whistleblower Portal
 const ReportSchema = new mongoose.Schema({
     reporterId: { type: String, required: true },
     reporterRole: { type: String, required: true },
@@ -40,9 +40,22 @@ const ReportSchema = new mongoose.Schema({
     status: { type: String, enum: ['Pending', 'Reviewed', 'Resolved'], default: 'Pending' }
 }, { timestamps: true });
 
+// 5. NEW: Leave Application System (This is what was missing!)
+const LeaveSchema = new mongoose.Schema({
+    applicantId: { type: String, required: true },
+    applicantRole: { type: String, required: true }, 
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    reason: { type: String, required: true },
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    adminFeedback: { type: String, default: '' } 
+}, { timestamps: true });
+
+// Export everything perfectly so the routes can use them
 module.exports = {
     User: mongoose.model('User', UserSchema),
     PreApproved: mongoose.model('PreApproved', PreApprovedIdSchema),
     StudentProfile: mongoose.model('StudentProfile', StudentProfileSchema),
-    Report: mongoose.model('Report', ReportSchema)
+    Report: mongoose.model('Report', ReportSchema),
+    Leave: mongoose.model('Leave', LeaveSchema)
 };
