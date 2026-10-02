@@ -42,4 +42,5 @@ const adminOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, headmasterOnly, adminOnly };
+// THE FIX: We are safely exporting the guard as BOTH 'protect' and 'verifyToken' so all routes connect perfectly!
+module.exports = { protect, verifyToken: protect, headmasterOnly, adminOnly };
