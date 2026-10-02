@@ -51,13 +51,37 @@ const LeaveSchema = new mongoose.Schema({
     adminFeedback: { type: String, default: '' } 
 }, { timestamps: true });
 
-// 6. NEW: Global Notice Board & Logistics Feed
+// 6. Global Notice Board & Logistics Feed
 const NoticeSchema = new mongoose.Schema({
     title: { type: String, required: true },
     content: { type: String, required: true },
-    type: { type: String, enum: ['Notice', 'Logistics'], required: true }, // 'Notice' = Headmaster, 'Logistics' = Assistant
+    type: { type: String, enum: ['Notice', 'Logistics'], required: true },
     authorId: { type: String, required: true },
     authorRole: { type: String, required: true }
+}, { timestamps: true });
+
+// 7. NEW: Teacher Profile (For the Directory)
+const TeacherProfileSchema = new mongoose.Schema({
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    designation: { type: String, required: true },
+    subjects: [{ type: String }] // e.g., ["Mathematics", "Physics"]
+}, { timestamps: true });
+
+// 8. NEW: Digital Classroom (Lesson Posts)
+const LessonSchema = new mongoose.Schema({
+    teacherId: { type: String, required: true },
+    teacherName: { type: String, required: true },
+    subject: { type: String, required: true },
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    youtubeLink: { type: String, default: '' },
+    fileUrl: { type: String, default: '' },
+    comments: [{
+        userId: String,
+        fullName: String,
+        text: String,
+        createdAt: { type: Date, default: Date.now }
+    }]
 }, { timestamps: true });
 
 module.exports = {
@@ -66,5 +90,7 @@ module.exports = {
     StudentProfile: mongoose.model('StudentProfile', StudentProfileSchema),
     Report: mongoose.model('Report', ReportSchema),
     Leave: mongoose.model('Leave', LeaveSchema),
-    Notice: mongoose.model('Notice', NoticeSchema) // Exported here!
+    Notice: mongoose.model('Notice', NoticeSchema),
+    TeacherProfile: mongoose.model('TeacherProfile', TeacherProfileSchema), // Exported
+    Lesson: mongoose.model('Lesson', LessonSchema) // Exported
 };
