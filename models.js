@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    // THE FIX: Removed the underscore to match the frontend perfectly
     role: { type: String, enum: ['Headmaster', 'Assistant Headmaster', 'Teacher', 'Student'], required: true },
     fullName: { type: String, required: true },
     isActive: { type: Boolean, default: true }
@@ -13,7 +12,6 @@ const UserSchema = new mongoose.Schema({
 // 2. Pre-Approved IDs (Gatekeeper for Registration)
 const PreApprovedIdSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
-    // THE FIX: Added 'Assistant Headmaster' to the allowed list so MongoDB stops rejecting it
     role: { type: String, enum: ['Assistant Headmaster', 'Student', 'Teacher'], required: true },
     isRegistered: { type: Boolean, default: false }
 });
@@ -32,9 +30,10 @@ const StudentProfileSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// 4. Confidential Whistleblower Portal
+// 4. Confidential Whistleblower Portal (FIXED: Perfectly matches the reports route)
 const ReportSchema = new mongoose.Schema({
-    reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    reporterId: { type: String, required: true },
+    reporterRole: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
     evidenceUrl: { type: String },
