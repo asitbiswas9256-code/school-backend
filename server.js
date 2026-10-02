@@ -19,17 +19,18 @@ app.use('/api/auth', authRoutes);
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 
-// NEW TEACHER ROUTE ADDED HERE
 const teacherRoutes = require('./routes/teacher');
 app.use('/api/teacher', teacherRoutes);
 
-// NEW STUDENT ROUTE ADDED HERE
 const studentRoutes = require('./routes/student');
 app.use('/api/student', studentRoutes);
 
-// NEW REPORTS ROUTE ADDED HERE
 const reportRoutes = require('./routes/reports');
 app.use('/api/reports', reportRoutes);
+
+// NEW LEAVE ROUTE ADDED HERE
+const leaveRoutes = require('./routes/leaves');
+app.use('/api/leaves', leaveRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
