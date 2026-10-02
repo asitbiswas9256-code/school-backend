@@ -23,5 +23,9 @@ app.use('/api/admin', adminRoutes);
 const teacherRoutes = require('./routes/teacher');
 app.use('/api/teacher', teacherRoutes);
 
+// NEW STUDENT ROUTE ADDED HERE
+const studentRoutes = require('./routes/student');
+app.use('/api/student', studentRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
