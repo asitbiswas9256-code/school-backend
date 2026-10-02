@@ -31,9 +31,13 @@ app.use('/api/reports', reportRoutes);
 const leaveRoutes = require('./routes/leaves');
 app.use('/api/leaves', leaveRoutes);
 
-// NEW: Global Notice Board & Logistics Route
+// Global Notice Board & Logistics Route
 const noticeRoutes = require('./routes/notices');
 app.use('/api/notices', noticeRoutes);
+
+// NEW: Lessons Route (Handles Media Uploads!)
+const lessonRoutes = require('./routes/lessons');
+app.use('/api/lessons', lessonRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
