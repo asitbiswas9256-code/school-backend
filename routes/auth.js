@@ -1,58 +1,75 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User, PreApproved, StudentProfile } = require('../models');
 
-const hashPassword = async (password) => {
-    try { const bcrypt = require('bcryptjs'); const salt = await bcrypt.genSalt(10); return await bcrypt.hash(password, salt); } 
-    catch(e) { try { const bcrypt = require('bcrypt'); const salt = await bcrypt.genSalt(10); return await bcrypt.hash(password, salt); } catch(err) { return password; } }
-};
-
-const comparePassword = async (entered, saved) => {
-    try { const bcrypt = require('bcryptjs'); return await bcrypt.compare(entered, saved); } 
-    catch(e) { try { const bcrypt = require('bcrypt'); return await bcrypt.compare(entered, saved); } catch(err) { return entered === saved; } }
-};
-
-router.post('/login', async (req, res) => {
+// --- 1. REGISTER A NEW ACCOUNT ---
+router.post('/register', async (req, res) => {
     try {
-        const { userId, password, role } = req.body;
-        const user = await User.findOne({ userId, role });
-        if (!user) return res.status(404).json({ message: "User not found or incorrect role." });
-        if (!user.isActive) return res.status(403).json({ message: "Account is disabled." });
+        const { userId, password, fullName, dob, bloodGroup, currentClass, rollNo } = req.body;
 
-        const isMatch = await comparePassword(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: "Invalid credentials." });
+        // A. Check if the Headmaster authorized this ID
+        const preApproved = await PreApproved.findOne({ userId });
+        if (!preApproved) return res.status(403).json({ message: "This ID has not been authorized by the administration." });
+        if (preApproved.isRegistered) return res.status(400).json({ message: "This ID is already registered." });
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'fallback_secret_key', { expiresIn: '1d' });
-        res.status(200).json({ token, role: user.role, message: "Login successful" });
-    } catch (error) { res.status(500).json({ message: `Server error: ${error.message}` }); }
-});
+        // B. Securely scramble (hash) the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-// NEW: SELF-REGISTRATION / ACTIVATION
-router.post('/activate', async (req, res) => {
-    try {
-        const { userId, role, fullName, email, password, dob, bloodGroup, currentClass, rollNo } = req.body;
-
-        const preApp = await PreApproved.findOne({ userId, role });
-        if (!preApp) return res.status(403).json({ message: "This ID has not been authorized by the Admin." });
-        if (preApp.isRegistered) return res.status(400).json({ message: "This ID has already been activated!" });
-
-        const hashedPassword = await hashPassword(password);
-        const newUser = new User({ userId, password: hashedPassword, role, fullName, email, dob, bloodGroup });
+        // C. Create the Master User Account
+        const newUser = new User({
+            userId, password: hashedPassword, role: preApproved.role, fullName, dob, bloodGroup
+        });
         await newUser.save();
 
-        if (role === 'Student') {
-            const studentData = new StudentProfile({ studentId: newUser._id, currentClass, rollNo });
-            await studentData.save();
+        // D. Mark ID as used
+        preApproved.isRegistered = true;
+        await preApproved.save();
+
+        // E. Auto-generate a Student Profile if they are a student
+        if (preApproved.role === 'Student') {
+            const newStudentProfile = new StudentProfile({ 
+                studentId: userId, currentClass: currentClass || 'Unassigned', rollNo: rollNo || 'N/A' 
+            });
+            await newStudentProfile.save();
         }
 
-        preApp.isRegistered = true;
-        await preApp.save();
+        res.status(201).json({ message: "Registration successful! You can now log in." });
+    } catch (err) { res.status(500).json({ message: "Server error during registration." }); }
+});
 
-        res.status(201).json({ message: "Account successfully activated! You can now log in." });
-    } catch (error) {
-        res.status(500).json({ message: `Activation Error: ${error.message}` });
-    }
+
+// --- 2. LOG IN ---
+router.post('/login', async (req, res) => {
+    try {
+        const { userId, password } = req.body;
+
+        // A. Find the user
+        const user = await User.findOne({ userId });
+        if (!user) return res.status(404).json({ message: "User not found." });
+
+        // B. God-Mode Check: Is this user blocked?
+        if (!user.isActive) return res.status(403).json({ message: "Your account has been blocked. Contact the Headmaster." });
+
+        // C. Verify the password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: "Invalid password." });
+
+        // D. Generate a secure Digital Token (JWT)
+        const token = jwt.sign(
+            { id: user._id, userId: user.userId, role: user.role, fullName: user.fullName }, 
+            process.env.JWT_SECRET || 'supersecretkey123', 
+            { expiresIn: '7d' } // Keeps them logged in for 7 days
+        );
+
+        res.status(200).json({ 
+            message: "Login successful", 
+            token, 
+            user: { userId: user.userId, role: user.role, fullName: user.fullName, email: user.email } 
+        });
+    } catch (err) { res.status(500).json({ message: "Server error during login." }); }
 });
 
 module.exports = router;
