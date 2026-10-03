@@ -17,15 +17,24 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
-// 1. Publish Lesson (Uploads Media)
-router.post('/publish', upload.single('mediaFile'), async (req, res) => {
+// 1. Publish Lesson (Now handles Media AND Thumbnails!)
+router.post('/publish', upload.fields([{ name: 'mediaFile', maxCount: 1 }, { name: 'thumbnailFile', maxCount: 1 }]), async (req, res) => {
     try {
-        const { teacherId, teacherName, subject, title, content, youtubeLink } = req.body;
-        const fileUrl = req.file ? req.file.path : '';
-        const newLesson = new Lesson({ teacherId, teacherName, subject, title, content, youtubeLink, fileUrl });
+        const { teacherId, teacherName, subject, targetClass, playlistName, title, content } = req.body;
+        
+        // Grab the secure URLs from Cloudinary if files were uploaded
+        const fileUrl = req.files && req.files['mediaFile'] ? req.files['mediaFile'][0].path : '';
+        const thumbnailUrl = req.files && req.files['thumbnailFile'] ? req.files['thumbnailFile'][0].path : '';
+
+        const newLesson = new Lesson({ 
+            teacherId, teacherName, subject, targetClass, playlistName, title, content, fileUrl, thumbnailUrl 
+        });
         await newLesson.save();
         res.status(201).json({ message: "Lesson published successfully!", lesson: newLesson });
-    } catch (error) { res.status(500).json({ message: "Failed to publish lesson." }); }
+    } catch (error) { 
+        console.error(error);
+        res.status(500).json({ message: "Failed to publish lesson." }); 
+    }
 });
 
 // 2. Get All Lessons
@@ -50,8 +59,8 @@ router.post('/:id/like', async (req, res) => {
         if (!lesson) return res.status(404).json({ message: "Lesson not found." });
 
         const index = lesson.likes.indexOf(userId);
-        if (index === -1) lesson.likes.push(userId); // Add like
-        else lesson.likes.splice(index, 1); // Remove like if already liked
+        if (index === -1) lesson.likes.push(userId); 
+        else lesson.likes.splice(index, 1); 
         
         await lesson.save();
         res.status(200).json({ message: "Like updated.", likes: lesson.likes });
