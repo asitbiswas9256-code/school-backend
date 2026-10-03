@@ -13,33 +13,17 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.get('/', (req, res) => res.send('API running smoothly'));
 
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
+// --- ALL ROUTE CONNECTIONS ---
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/teacher', require('./routes/teacher'));
+app.use('/api/student', require('./routes/student'));
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/leaves', require('./routes/leaves'));
+app.use('/api/notices', require('./routes/notices'));
+app.use('/api/lessons', require('./routes/lessons'));
 
-const adminRoutes = require('./routes/admin');
-app.use('/api/admin', adminRoutes);
-
-const teacherRoutes = require('./routes/teacher');
-app.use('/api/teacher', teacherRoutes);
-
-const studentRoutes = require('./routes/student');
-app.use('/api/student', studentRoutes);
-
-const reportRoutes = require('./routes/reports');
-app.use('/api/reports', reportRoutes);
-
-const leaveRoutes = require('./routes/leaves');
-app.use('/api/leaves', leaveRoutes);
-
-// Global Notice Board & Logistics Route
-const noticeRoutes = require('./routes/notices');
-app.use('/api/notices', noticeRoutes);
-
-// Lessons Route (Handles Media Uploads!)
-const lessonRoutes = require('./routes/lessons');
-app.use('/api/lessons', lessonRoutes);
-
-// --- NEW CONNECTIONS (Fixes Search, Attendance, and Profiles) ---
+// --- NEW OPERATIONS & PROFILES ---
 app.use('/api/school', require('./routes/school'));
 app.use('/api/profile', require('./routes/profile'));
 
